@@ -1,0 +1,122 @@
+###Divvy_Exercise_Full_Year_Analysis ###
+
+#STEP 1:Collecting The Data
+# Always check your working directory and change it to the file you want to work on 
+#go to session on the top of your screen and select the folder/file you want to work on 
+
+getwd()              #to identify the directory 
+setwd("/Users/claudia/Desktop/csvfilestomerge")
+dir()          #check the directory 
+
+
+####I did some partial cleaning in excel 
+
+
+#First you have to install these files 
+install.packages("tidyverse")
+install.packages("readr")
+install.packages("dplyr")
+install.packages("janitor")
+
+
+#Load the files 
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(janitor)
+
+#import your .csv file to your Global Environment 
+#Import file df1
+#Import file df2
+#Import file df3
+#Import file df4
+
+df2 <- read.csv("Trips Q2.csv")
+df1 <- read_csv("Trips Q1.csv")
+df3 <- read.csv("Trips Q3.csv")
+df4 <- read.csv("Trips Q4.csv")
+
+#STEP 2: 
+# Check the contents of each data frame
+str(df1)
+str(df2)
+str(df3)
+str(df4)
+
+# read the files into a date frame 
+df1<-read.csv ("Trips Q1.csv",header = FALSE, col.names = c("Rental_ID", 
+                "Start_Date", "Start_Time", "End_Date", "End_Time", "Start_Station_Name", "Start_Station_ID", 
+                "End_Station_Name", "End_Station_ID", "Start_Lat","Start_lng", "End_Lat", "End_lng", 
+                "User_Type", "Ride_Length", "Day_Of_Week", "Ride_Max","Ride_Length_Mode", "Ride_Length_Mean"))
+
+df2<- read.csv ("Trips Q2.csv", header = FALSE, col.names = c("Rental_ID", "Start_Date",
+                                                  "Start_Time", "End_Date", "End_Time", "Bike_ID ", "Trip_Duration", "Start_Station_ID", 
+                                                  "Start_Station_Name", "End_Station_ID ", "End_Station_Name ", "User_Type", "Gender", "Birth_Year",
+                                                   "Ride_Length", "Day_Of_Week", "Ride_Length_Max", "Ride_Length_Mode","Ride_Length_Mean "))
+
+
+
+df3<- read.csv ("Trips Q3.csv", header = FALSE,col.names = c("Rental_ID ", "Start_Date", "Start_Time","End_Date", "End_Time", "Bike_ID", "Trip_Duration",
+                                                  "Start_Station_ID", "Start_Station_Name", "End_Station_ID", "End_Station_Name", 
+                                                  "User_Type", "Gender", "Birth_Year", "Ride_Length", 
+                                                  "Day_Of_Week", "Ride_Length_Max", "Ride_Length_Mode", "Ride_Length_Mean"))
+
+
+
+df4<- read.csv ("Trips Q4.csv", header = FALSE, col.names = c("Rental_ID", 
+                                                  "Start_Date", "Start_Time", "End_Date", "End_Time", "Bike_ID", "Trip_Duration", 
+                                                  "Start_Station_ID", "Start_Station_Name", "End_Station_ID", "End_Station_Name", 
+                                                  "User_Type", "Gender", "Birth_Year", "Ride_Length", 
+                                                  "Day_Of_Week", "Ride_Length_Max", "Ride_Length_Mode", "Ride_Length_Mean"))
+
+##Binding all the data frames together into a single data frame.
+
+#Bike_Rides <- bind_rows(df1, df2, df3,df4)
+
+#when I use the function above to bind it they were some columns with missing value 
+
+##When I use the function below didn't work that well 
+
+# Bike_Rides <- bind_rows(df1, df2, df3, df4, .id = "DataFrame") %>%
+#         rowwise() %>%
+#         filter(!any(is.na(c(Birth_Year, Gender, Trip_Duration))))
+
+Bike_Rides<- bind_rows(df1, df2, df3, df4, .id = "DataFrame") %>%
+        rowwise() %>%
+        filter(!any(is.na(c(Birth_Year, Gender, Trip_Duration)))) %>%
+        mutate(Bike_ID = NA, Rental_ID. = NA,Ride_Length_Mean = NA, End_Station_ID = NA, End_Station_Name = NA)
+
+
+
+#adding columns that list the date, month, day and year 
+Bike_Rides$Date <- as.Date(Bike_Rides$Start_Date, format = "%m/%d/%y")
+
+Bike_Rides$Month <- format(as.Date(Bike_Rides$Date), "%m")
+
+Bike_Rides$Day <- format(as.Date(Bike_Rides$Date), "%d")
+
+Bike_Rides$Day_Of_Week<- format(as.Date(Bike_Rides$Date), "%A")
+
+Bike_Rides$Year <- format(as.Date(Bike_Rides$Date), "%Y")
+
+
+
+#Step 3:Data Cleaning 
+
+#remove empty columns and rows from the single file 
+
+Bike_Rides <- remove_empty(Bike_Rides, which= c("cols"))
+
+Bike_Rides <- remove_empty(Bike_Rides, which = c("rows"))
+
+Bike_Rides <- na.omit(Bike_Rides)
+
+#summarized clean data
+summary(Bike_Rides)
+str(Bike_Rides)
+names(Bike_Rides)
+
+###Save file 
+save(Bike_Rides, file = "Bike_Rides.RData") 
+##OR
+write.csv(Bike_Rides, file = "Bike_Rides.csv")
