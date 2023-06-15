@@ -5,11 +5,8 @@
 #go to session on the top of your screen and select the folder/file you want to work on 
 
 getwd()              #to identify the directory 
-setwd("/Users/claudia/Desktop/csvfilestomerge")
+setwd("/Users/claudia/Desktop/csvfiles ")
 dir()          #check the directory 
-
-
-####I did some partial cleaning in excel 
 
 
 #First you have to install these files 
@@ -19,104 +16,216 @@ install.packages("dplyr")
 install.packages("janitor")
 
 
+
 #Load the files 
 library(readr)
 library(dplyr)
 library(tidyverse)
 library(janitor)
 
+
 #import your .csv file to your Global Environment 
-#Import file df1
-#Import file df2
-#Import file df3
-#Import file df4
-
-df2 <- read.csv("Trips Q2.csv")
-df1 <- read_csv("Trips Q1.csv")
-df3 <- read.csv("Trips Q3.csv")
-df4 <- read.csv("Trips Q4.csv")
-
-#STEP 2: 
-# Check the contents of each data frame
-str(df1)
-str(df2)
-str(df3)
-str(df4)
-
-# read the files into a date frame 
-df1<-read.csv ("Trips Q1.csv",header = FALSE, col.names = c("Rental_ID", 
-                "Start_Date", "Start_Time", "End_Date", "End_Time", "Start_Station_Name", "Start_Station_ID", 
-                "End_Station_Name", "End_Station_ID", "Start_Lat","Start_lng", "End_Lat", "End_lng", 
-                "User_Type", "Ride_Length", "Day_Of_Week", "Ride_Max","Ride_Length_Mode", "Ride_Length_Mean"))
-
-df2<- read.csv ("Trips Q2.csv", header = FALSE, col.names = c("Rental_ID", "Start_Date",
-                                                  "Start_Time", "End_Date", "End_Time", "Bike_ID ", "Trip_Duration", "Start_Station_ID", 
-                                                  "Start_Station_Name", "End_Station_ID ", "End_Station_Name ", "User_Type", "Gender", "Birth_Year",
-                                                   "Ride_Length", "Day_Of_Week", "Ride_Length_Max", "Ride_Length_Mode","Ride_Length_Mean "))
+#Import file Q1
+#Import file Q2
+#Import file Q3
+#Import file Q4
 
 
+Q1 <- read_csv("Divvy_Trips_2020_Q1.csv")
+Q2 <- read_csv("Divvy_Trips_2019_Q2.csv")
+Q3 <- read_csv("Divvy_Trips_2019_Q3.csv")
+Q4 <- read_csv("Divvy_Trips_2019_Q4.csv")
 
-df3<- read.csv ("Trips Q3.csv", header = FALSE,col.names = c("Rental_ID ", "Start_Date", "Start_Time","End_Date", "End_Time", "Bike_ID", "Trip_Duration",
-                                                  "Start_Station_ID", "Start_Station_Name", "End_Station_ID", "End_Station_Name", 
-                                                  "User_Type", "Gender", "Birth_Year", "Ride_Length", 
-                                                  "Day_Of_Week", "Ride_Length_Max", "Ride_Length_Mode", "Ride_Length_Mean"))
+#get the names of the columns of a data frame
+colnames(Q1)
+colnames(Q2)
+colnames(Q3)
+colnames(Q4)
+
+#set the names of the columns of a data frame.
+colnames(Q1) <- c("trip_id","bike_id","start_time","end_time",
+                 "from_station_name","from_station_id","to_station_name",
+                 "to_station_id","start_lat","start_lng","end_lat",
+                "end_lng", "user_type")
+        
+
+colnames(Q2) <- c("trip_id","start_time","end_time","bike_id","trip_duration",
+                 "from_station_id", "from_station_name","to_station_id","to_station_name",
+                 "user_type","gender","birth_year")
+        
+
+colnames(Q3) <- c("trip_id","start_time","end_time","bike_id","trip_duration",
+                  "from_station_id","from_station_name","to_station_id","to_station_name",
+                  "user_type","gender","birth_year")
+
+colnames(Q4) <- c("trip_id","start_time","end_time","bike_id","trip_duration",
+                  "from_station_id","from_station_name","to_station_id","to_station_name",
+                  "user_type","gender","birth_year")
 
 
 
-df4<- read.csv ("Trips Q4.csv", header = FALSE, col.names = c("Rental_ID", 
-                                                  "Start_Date", "Start_Time", "End_Date", "End_Time", "Bike_ID", "Trip_Duration", 
-                                                  "Start_Station_ID", "Start_Station_Name", "End_Station_ID", "End_Station_Name", 
-                                                  "User_Type", "Gender", "Birth_Year", "Ride_Length", 
-                                                  "Day_Of_Week", "Ride_Length_Max", "Ride_Length_Mode", "Ride_Length_Mean"))
+
+#STEP 2: Combining data and making sure it's consistent 
+# Check the contents of each data frame and the format for each column
+str(Q1)
+str(Q2)
+str(Q3)
+str(Q4)
+
+#Converting the Format for these three files so they can slack correctly 
+Q2<-  mutate(Q2, trip_id = as.character(trip_id),
+                   bike_id = as.character(bike_id))
+
+Q3<-  mutate(Q3, trip_id = as.character(trip_id),
+             bike_id = as.character(bike_id))
+
+Q4<-  mutate(Q4, trip_id = as.character(trip_id),
+             bike_id = as.character(bike_id))
 
 ##Binding all the data frames together into a single data frame.
+bike_rides <- bind_rows(Q1,Q2,Q3,Q4)
 
-#Bike_Rides <- bind_rows(df1, df2, df3,df4)
-
-#when I use the function above to bind it they were some columns with missing value 
-
-##When I use the function below didn't work that well 
-
-# Bike_Rides <- bind_rows(df1, df2, df3, df4, .id = "DataFrame") %>%
-#         rowwise() %>%
-#         filter(!any(is.na(c(Birth_Year, Gender, Trip_Duration))))
-
-Bike_Rides<- bind_rows(df1, df2, df3, df4, .id = "DataFrame") %>%
-        rowwise() %>%
-        filter(!any(is.na(c(Birth_Year, Gender, Trip_Duration)))) %>%
-        mutate(Bike_ID = NA, Rental_ID. = NA,Ride_Length_Mean = NA, End_Station_ID = NA, End_Station_Name = NA)
+#Removing columns to make the data more consistent 
+bike_rides <- bike_rides %>%  
+        select(-c("start_lat", "start_lng", "end_lat", "end_lng", "birth_year", "gender","trip_duration"))
 
 
+#Step 3: Cleaning and Adding Data 
 
-#adding columns that list the date, month, day and year 
-Bike_Rides$Date <- as.Date(Bike_Rides$Start_Date, format = "%m/%d/%y")
+## they were 4 different names in the user_type column, so I consolidate to two names
+bike_rides <-  bike_rides %>% 
+        mutate(user_type = recode(user_type
+                                      ,"Subscriber" = "member"
+                                      ,"Customer" = "casual"))
 
-Bike_Rides$Month <- format(as.Date(Bike_Rides$Date), "%m")
+#Checking if it was properly reassigned 
+table(bike_rides$user_type)
 
-Bike_Rides$Day <- format(as.Date(Bike_Rides$Date), "%d")
+#adding columns that list the date, month, day, and year 
+bike_rides$date <- as.Date(bike_rides$start_time, format = "%y/%m/%d")
 
-Bike_Rides$Day_Of_Week<- format(as.Date(Bike_Rides$Date), "%A")
+bike_rides$month <- format(as.Date(bike_rides$date), "%m")
 
-Bike_Rides$Year <- format(as.Date(Bike_Rides$Date), "%Y")
+bike_rides$day <- format(as.Date(bike_rides$date), "%d")
+
+bike_rides$year <- format(as.Date(bike_rides$date), "%Y")
+
+bike_rides$day_of_week<- format(as.Date(bike_rides$date), "%A")
+
+bike_rides$ride_length <- difftime(bike_rides$end_time,bike_rides$start_time)
+
+#checking the data 
+str(bike_rides)
+
+#checking to see if ride length is numeric 
+is.factor(bike_rides$ride_length) 
+
+#Converting ride length to numeric 
+
+bike_rides$ride_length <- as.numeric(as.character(bike_rides$ride_length))
+                is.numeric(bike_rides$ride_length)
 
 
 
-#Step 3:Data Cleaning 
 
-#remove empty columns and rows from the single file 
+#remove empty columns and rows from the single data frame  
 
-Bike_Rides <- remove_empty(Bike_Rides, which= c("cols"))
+bike_rides<- remove_empty(bike_rides, which= c("cols"))
 
-Bike_Rides <- remove_empty(Bike_Rides, which = c("rows"))
+bike_rides <- remove_empty(bike_rides, which = c("rows"))
 
-Bike_Rides <- na.omit(Bike_Rides)
+bike_rides <- na.omit(bike_rides)
 
-#summarized clean data
-summary(Bike_Rides)
-str(Bike_Rides)
-names(Bike_Rides)
+#removing duplicates in the data frame 
+distinct(bike_rides)
+
+
+
+#Step 4 analyzing 
+#create a new data frame so we won't change the original data frame 
+bike_rides_v2 <- bike_rides[!(bike_rides$from_station_name == "HQ QR" | bike_rides$ride_length<0),]
+
+
+#average 
+mean(bike_rides_v2$ride_length) 
+#the midpoint number 
+median(bike_rides_v2$ride_length) 
+#longest ride
+max(bike_rides_v2$ride_length) 
+#shortest ride
+min(bike_rides_v2$ride_length) 
+
+summary(bike_rides_v2$ride_length)
+
+#comparing members and casuals
+
+aggregate(bike_rides_v2$ride_length ~ bike_rides_v2$user_type, FUN = mean)
+aggregate(bike_rides_v2$ride_length ~ bike_rides_v2$user_type, FUN = median)
+aggregate(bike_rides_v2$ride_length ~ bike_rides_v2$user_type, FUN = max)
+aggregate(bike_rides_v2$ride_length ~ bike_rides_v2$user_type, FUN = min)
+
+#average by each day 
+aggregate(bike_rides_v2$ride_length ~ bike_rides_v2$user_type + bike_rides_v2$day_of_week, FUN = mean)
+
+#making the day of the week in order 
+bike_rides_v2$day_of_week <- ordered(bike_rides_v2$day_of_week, levels=c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
+
+# analyze ridership data by type and weekday
+bike_rides_v2 %>% 
+        mutate(weekday = wday(start_time, label = TRUE)) %>%  #creates weekday field using wday()
+        group_by(user_type, weekday) %>%  #groups by usertype and weekday
+        summarise(number_of_rides = n()							#calculates the number of rides and average duration 
+                  ,average_duration = mean(ride_length)) %>% 		# calculates the average duration
+        arrange(user_type, weekday)	
+
+#visualize 
+bike_rides_v2 %>%
+        mutate(weekday = wday(start_time, label = TRUE)) %>%
+        group_by(weekday, user_type) %>%
+        summarise(number_of_rides = n(),
+        average_duration = mean(ride_length)) %>% 
+        ggplot(aes(x = weekday, y = number_of_rides, fill = user_type)) +
+        geom_col(position = "dodge") +
+        labs(title = "Ridership by weekday and type", x = "Weekday", y = "Number of rides", fill = "Type")
+
+
+
+
+
+#visualize the number of rides 
+bike_rides_v2%>% 
+        mutate(weekday = wday(start_time, label = TRUE)) %>% 
+        group_by(user_type, weekday) %>% 
+        summarise(number_of_rides = n()
+                  ,average_duration = mean(ride_length)) %>% 
+        arrange(user_type, weekday)  %>% 
+        ggplot(aes(x = weekday, y = number_of_rides, fill = user_type)) +
+        geom_col(position = "dodge")
+
+#visualize the average duration 
+
+bike_rides_v2 %>%
+        mutate(weekday = wday(start_time, label = TRUE)) %>%
+        group_by(user_type, weekday) %>%
+        summarise(number_of_rides = n()
+                  ,average_duration = mean(ride_length)) %>%
+        arrange(user_type, weekday)  %>%
+        ggplot(aes(x = weekday, y = average_duration, fill = user_type)) +
+        geom_col(position = "dodge") +
+        scale_fill_manual(values = c("orange", "red")) #change fill colors to orange and red
+
+
+
+
+
+
+#Step 5: Exporting the file 
 
 ###Save file 
-save(Bike_Rides, file = "Bike_Rides.RData") 
-##OR
-write.csv(Bike_Rides, file = "Bike_Rides.csv")
+save(bike_rides_v2, file = "bike_rides_v2.RData")
+write.csv(bike_rides_v2, file = "bike_rides_v2.csv")
+
+
+
+
+
